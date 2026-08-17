@@ -1,0 +1,19 @@
+{
+  "name": "Pissarra Tàctica",
+  "short_name": "Pissarra",
+  "description": "Pissarra tàctica interactiva de futbol",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#10161a",
+  "theme_color": "#10161a",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

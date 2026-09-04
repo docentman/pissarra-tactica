@@ -1,1 +1,416 @@
-<!doctype html><html lang="ca"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#10161a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Pissarra"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icon.svg"><title>Pissarra Tàctica</title><style>body{margin:0;background:#10161a;color:#fff;font-family:system-ui;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}header,.bar{padding:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}header{justify-content:space-between}select,button,input{padding:9px;border-radius:9px;border:1px solid #46535a;background:#172127;color:#fff}button{cursor:pointer}.main{display:grid;grid-template-columns:1fr 300px;gap:10px;padding:10px}.pitch{background:#287a43;border-radius:14px;overflow:hidden;touch-action:none}.pitch svg{width:100%;display:block}.p{cursor:grab}.p circle{stroke:#fff;stroke-width:2}.home circle{fill:#2677d2}.away circle{fill:#d64b4b}.p text{fill:#fff;text-anchor:middle;dominant-baseline:middle;font-weight:800}.ball{fill:#fff;stroke:#111;stroke-width:2}.panel{background:#172127;border-radius:14px;padding:12px}.timeline{display:flex;gap:6px;overflow:auto}.frame{padding:7px 11px;border:1px solid #46535a;border-radius:9px}.active{border-color:#ffd447}.primary{background:#ffd447;color:#111;font-weight:800}#installBtn{display:none;background:#2677d2;font-weight:800}@media(max-width:800px){.main{grid-template-columns:1fr}.panel{order:-1}header span{font-size:12px}.bar{gap:6px}select,button{font-size:13px;padding:8px}}</style></head><body><header><b>Pissarra Tàctica V1</b><span>22 jugadors · pilota · fotogrames · animació</span></header><div class="bar"><button id="installBtn">⬇ Instal·lar app</button><select id="hf"><option value="442d">Blau 4-4-2 rombe</option><option value="4231">Blau 4-2-3-1</option><option value="442">Blau 4-4-2</option></select><button onclick="formation('H',hf.value)">Aplicar blau</button><select id="af"><option value="4231">Vermell 4-2-3-1</option><option value="442">Vermell 4-4-2</option></select><button onclick="formation('A',af.value)">Aplicar vermell</button><button class="primary" onclick="dup()">+ Duplicar fotograma</button><button onclick="play()">▶ Reproduir</button><button onclick="save()">Desar</button></div><div class="main"><div><div class="pitch"><svg id="svg" viewBox="0 0 1050 680"><g fill="none" stroke="rgba(255,255,255,.75)" stroke-width="4"><rect x="20" y="20" width="1010" height="640"/><line x1="525" y1="20" x2="525" y2="660"/><circle cx="525" cy="340" r="92"/><rect x="20" y="170" width="165" height="340"/><rect x="20" y="255" width="60" height="170"/><rect x="865" y="170" width="165" height="340"/><rect x="970" y="255" width="60" height="170"/></g><g id="layer"></g></svg></div><div id="tl" class="timeline bar"></div></div><div class="panel"><b>Projecte</b><p><input id="name" value="Automatisme 01" style="width:100%"></p><p>Arrossega qualsevol jugador o la pilota. Quan tinguis la posició inicial, prem <b>Duplicar fotograma</b>, mou els jugadors a la següent posició i repeteix.</p><div id="sel">Cap jugador seleccionat.</div></div></div><script>const S=document.getElementById('svg'),L=document.getElementById('layer');const forms={H:{'442d':[[80,340],[220,240],[220,440],[330,100],[330,580],[365,340],[475,235],[475,445],[590,340],[710,270],[710,410]],'4231':[[80,340],[220,240],[220,440],[330,100],[330,580],[390,285],[390,395],[530,160],[550,340],[530,520],[710,340]],'442':[[80,340],[220,240],[220,440],[330,100],[330,580],[480,120],[470,275],[470,405],[480,560],[690,280],[690,400]]},A:{'4231':[[970,340],[830,240],[830,440],[730,100],[730,580],[670,285],[670,395],[590,160],[590,340],[590,520],[500,340]],'442':[[970,340],[830,240],[830,440],[730,100],[730,580],[620,120],[620,275],[620,405],[620,560],[500,280],[500,400]]}};let frames=[],cur=0,drag=null,selected=null;function initial(){let a=[];forms.H['442d'].forEach((p,i)=>a.push({id:'H'+i,t:'H',n:i+1,x:p[0],y:p[1]}));forms.A['4231'].forEach((p,i)=>a.push({id:'A'+i,t:'A',n:i+1,x:p[0],y:p[1]}));a.push({id:'B',t:'B',x:250,y:400});return a}frames=[initial()];function cp(x){return JSON.parse(JSON.stringify(x))}function draw(){L.innerHTML='';frames[cur].forEach(e=>{let g=document.createElementNS('http://www.w3.org/2000/svg','g');g.setAttribute('transform',`translate(${e.x} ${e.y})`);g.classList.add('p',e.t==='H'?'home':e.t==='A'?'away':'');g.dataset.id=e.id;g.innerHTML=e.t==='B'?'<circle class="ball" r="10"/>':`<circle r="22"/><text>${e.n}</text>`;g.onpointerdown=ev=>{selected=e.id;drag={e,dx:e.x-point(ev).x,dy:e.y-point(ev).y};g.setPointerCapture?.(ev.pointerId);document.getElementById('sel').textContent=e.t==='B'?'Pilota seleccionada':`Jugador ${e.n} seleccionat`};L.appendChild(g)});timeline()}function point(ev){let p=S.createSVGPoint();p.x=ev.clientX;p.y=ev.clientY;return p.matrixTransform(S.getScreenCTM().inverse())}S.onpointermove=ev=>{if(!drag)return;let p=point(ev);drag.e.x=Math.max(25,Math.min(1025,p.x+drag.dx));drag.e.y=Math.max(25,Math.min(655,p.y+drag.dy));draw()};window.onpointerup=()=>drag=null;function formation(team,key){let pos=forms[team][key],arr=frames[cur].filter(e=>e.t===team);arr.forEach((e,i)=>{e.x=pos[i][0];e.y=pos[i][1]});draw()}function dup(){frames.splice(cur+1,0,cp(frames[cur]));cur++;draw()}function timeline(){let t=document.getElementById('tl');t.innerHTML='';frames.forEach((f,i)=>{let b=document.createElement('button');b.className='frame '+(i===cur?'active':'');b.textContent='Fotograma '+(i+1);b.onclick=()=>{cur=i;draw()};t.appendChild(b)})}async function play(){if(frames.length<2)return;for(let i=0;i<frames.length-1;i++){cur=i;draw();let a=frames[i],b=frames[i+1],start=performance.now();await new Promise(res=>{function tick(now){let k=Math.min(1,(now-start)/1000);a.forEach(x=>{let y=b.find(z=>z.id===x.id),g=L.querySelector(`[data-id="${x.id}"]`);if(y&&g)g.setAttribute('transform',`translate(${x.x+(y.x-x.x)*k} ${x.y+(y.y-x.y)*k})`)});k<1?requestAnimationFrame(tick):res()}requestAnimationFrame(tick)})}cur=frames.length-1;draw()}function save(){localStorage.setItem('pissarra:'+name.value,JSON.stringify({name:name.value,frames}));alert('Desat en aquest dispositiu')}draw();let deferredPrompt=null;const installBtn=document.getElementById('installBtn');window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;installBtn.style.display='inline-block'});installBtn.addEventListener('click',async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;installBtn.style.display='none'});window.addEventListener('appinstalled',()=>{installBtn.style.display='none'});if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(console.error))}</script></body></html>
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#111827" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+  <title>Pissarra Tàctica</title>
+  <style>
+:root{--bg:#0b1115;--panel:#121b21;--panel2:#17232b;--line:#26343d;--text:#f6f8fa;--muted:#9fb0ba;--accent:#f7c843;--blue:#2477d4;--red:#d94e4e;--danger:#8f3030}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}button,input,select,textarea{font:inherit}.app-shell{max-width:1500px;margin:auto;padding:12px}.topbar{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:12px}.topbar h1{margin:0;font-size:22px}.topbar p{margin:3px 0 0;color:var(--muted);font-size:13px}.header-actions{display:flex;flex-wrap:wrap;gap:7px}.layout{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:12px}.workspace-card,.panel-card{background:var(--panel);border:1px solid var(--line);border-radius:16px}.workspace-card{padding:12px}.panel-card{padding:13px;margin-bottom:12px}.toolbar{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;margin-bottom:10px}.control-group{display:flex;align-items:end;gap:7px}.control-group.compact{margin-left:auto}label{display:block;color:#c8d3d8;font-size:12px}input,select,textarea{width:100%;border:1px solid #34434d;background:#0c1419;color:white;border-radius:9px;padding:8px;margin-top:4px;outline:none}input:focus,select:focus,textarea:focus{border-color:#6a8493}button,.ghost,.file-label{border:1px solid #35434c;background:#17232b;color:white;border-radius:9px;padding:8px 11px;cursor:pointer;user-select:none}.ghost,.file-label{font-size:13px}.primary{background:var(--accent);color:#171717;border-color:var(--accent);font-weight:800}.danger{background:#35181a;border-color:#623135;color:#ffb7b7}.small{padding:4px 8px}.pitch-wrap{width:100%;border-radius:14px;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);touch-action:none}.pitch-wrap svg{width:100%;height:auto;display:block;touch-action:none}.entity{cursor:grab;filter:url(#shadow)}.entity.dragging{cursor:grabbing}.player-disc{stroke:white;stroke-width:2.4}.home .player-disc{fill:var(--blue)}.away .player-disc{fill:var(--red)}.entity text{pointer-events:none;text-anchor:middle;fill:white;font-weight:800}.num-text{font-size:15px;dominant-baseline:middle}.label-text{font-size:11px}.selected .player-disc{stroke:var(--accent);stroke-width:5}.ball-disc{fill:white;stroke:#111;stroke-width:3}.ball-mark{font-size:21px;dominant-baseline:middle;text-anchor:middle;fill:#111;font-weight:900}.transport{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px}.transport #frameCounter{min-width:70px;text-align:center;color:#c4d1d8;font-size:13px}.frames-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px}.frames-header h2,.panel-card h2{font-size:15px;margin:0}.frames-header p{font-size:12px;color:var(--muted);margin:4px 0 0}.frame-actions{display:flex;flex-wrap:wrap;gap:6px}.timeline{display:flex;gap:7px;overflow-x:auto;padding:9px 1px 3px}.frame-chip{flex:0 0 auto;min-width:65px;background:#0e171c;border:1px solid #2b3a43;border-radius:10px;padding:8px;text-align:center;cursor:pointer}.frame-chip.active{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}.frame-chip .idx{font-weight:800}.frame-chip .meta{font-size:10px;color:var(--muted);margin-top:2px}.side-panel{min-width:0}.panel-card label+label{margin-top:10px}.muted{color:var(--muted);font-size:13px}.coord-row{display:flex;gap:15px;color:var(--muted);font-size:12px;margin-top:10px}.saved-title{display:flex;justify-content:space-between;align-items:center}.saved-projects{display:grid;gap:7px;margin-top:9px}.saved-item{border:1px solid #2a3942;background:#0f181e;border-radius:10px;padding:8px}.saved-item strong{font-size:13px}.saved-item small{display:block;color:var(--muted);margin-top:2px}.saved-actions{display:flex;gap:5px;margin-top:7px}.saved-actions button{padding:5px 7px;font-size:11px}.panel-card ul{padding-left:18px;margin:8px 0 0;color:#c1cdd4;font-size:12px;line-height:1.45}
+@media(max-width:1000px){.layout{grid-template-columns:1fr}.side-panel{display:grid;grid-template-columns:1fr 1fr;gap:10px}.panel-card{margin:0}.saved-card{grid-column:1/-1}}
+@media(max-width:680px){.app-shell{padding:7px}.topbar{align-items:flex-start;flex-direction:column}.header-actions{width:100%}.header-actions>*{flex:1;text-align:center}.workspace-card{padding:7px;border-radius:12px}.toolbar{display:grid;grid-template-columns:1fr}.control-group{display:grid;grid-template-columns:1fr auto;align-items:end}.control-group.compact{margin:0;grid-template-columns:1fr}.frames-header{align-items:flex-start;flex-direction:column}.frame-actions{width:100%}.frame-actions button{flex:1}.side-panel{grid-template-columns:1fr}.transport button{padding:9px}.pitch-wrap{border-radius:10px}}
+.name-plate{stroke:white;stroke-width:2.4}.home .name-plate{fill:var(--blue)}.away .name-plate{fill:var(--red)}.name-only-text{font-size:13px;dominant-baseline:middle}.selected .name-plate{stroke:var(--accent);stroke-width:5}.roster-actions{display:flex;gap:7px;margin-top:8px}.roster-actions button{flex:1}.print-title{display:none}
+@media print{html,body{background:white!important}.app-shell{max-width:none;padding:0}.topbar,.toolbar,.transport,.frames-header,.timeline,.side-panel{display:none!important}.layout{display:block}.workspace-card{border:0;padding:0;background:white}.pitch-wrap{box-shadow:none;border-radius:0}.print-title{display:block;color:#111;font-size:20px;font-weight:800;margin:0 0 10px}.pitch-wrap svg{width:100%;height:auto}@page{size:landscape;margin:10mm}}
+
+</style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <h1>Pissarra Tàctica V2</h1>
+        <p>Editor 11v11 · fotogrames · animacions</p>
+      </div>
+      <div class="header-actions">
+        <button id="saveProjectBtn" class="ghost">Desar</button>
+        <button id="loadProjectBtn" class="ghost">Carregar</button>
+        <button id="exportBtn" class="ghost">Exportar</button>
+        <button id="printBtn" class="ghost">Imprimir / PDF</button>
+        <label class="ghost file-label">Importar<input id="importInput" type="file" accept="application/json" hidden></label>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="workspace-card">
+        <div id="printTitle" class="print-title"></div>
+        <div class="toolbar">
+          <div class="control-group">
+            <label>Jugadors al camp
+              <select id="teamVisibility">
+                <option value="home">Només el meu equip (blau)</option>
+                <option value="both" selected>El meu equip + contrari</option>
+              </select>
+            </label>
+          </div>
+          <div class="control-group">
+            <label>Visualització dels jugadors
+              <select id="playerDisplayMode">
+                <option value="numbers">Rodones amb números</option>
+                <option value="names">Noms dels jugadors</option>
+                <option value="both" selected>Número i nom</option>
+              </select>
+            </label>
+          </div>
+          <div class="control-group">
+            <button id="addBallBtn">⚽ Posar pilota</button>
+            <button id="removeBallBtn" class="ghost">Treure pilota</button>
+          </div>
+          <div class="control-group">
+            <label>Equip blau
+              <select id="homeFormation">
+                <option value="442d">4-4-2 rombe</option>
+                <option value="4231">4-2-3-1</option>
+                <option value="442">4-4-2</option>
+                <option value="433">4-3-3</option>
+              </select>
+            </label>
+            <button id="applyHomeFormation">Aplicar</button>
+          </div>
+          <div class="control-group">
+            <label>Equip vermell
+              <select id="awayFormation">
+                <option value="4231">4-2-3-1</option>
+                <option value="442">4-4-2</option>
+                <option value="433">4-3-3</option>
+                <option value="532">5-3-2</option>
+              </select>
+            </label>
+            <button id="applyAwayFormation">Aplicar</button>
+          </div>
+          <div class="control-group compact">
+            <label>Velocitat
+              <select id="speedSelect">
+                <option value="1800">Lenta</option>
+                <option value="1100" selected>Normal</option>
+                <option value="650">Ràpida</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div id="pitchWrap" class="pitch-wrap">
+          <svg id="pitch" viewBox="0 0 1050 680" role="img" aria-label="Camp de futbol tàctic interactiu">
+            <defs>
+              <filter id="shadow" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity=".35"/></filter>
+            </defs>
+            <rect width="1050" height="680" fill="#287a43"/>
+            <g fill="none" stroke="rgba(255,255,255,.78)" stroke-width="4">
+              <rect x="20" y="20" width="1010" height="640" rx="2"/>
+              <line x1="525" y1="20" x2="525" y2="660"/>
+              <circle cx="525" cy="340" r="92"/>
+              <circle cx="525" cy="340" r="4" fill="white"/>
+              <rect x="20" y="170" width="165" height="340"/>
+              <rect x="20" y="255" width="60" height="170"/>
+              <circle cx="130" cy="340" r="4" fill="white"/>
+              <rect x="865" y="170" width="165" height="340"/>
+              <rect x="970" y="255" width="60" height="170"/>
+              <circle cx="920" cy="340" r="4" fill="white"/>
+              <path d="M185 280 A70 70 0 0 1 185 400"/>
+              <path d="M865 280 A70 70 0 0 0 865 400"/>
+              <path d="M20 65 A45 45 0 0 0 65 20"/>
+              <path d="M985 20 A45 45 0 0 0 1030 65"/>
+              <path d="M20 615 A45 45 0 0 1 65 660"/>
+              <path d="M985 660 A45 45 0 0 1 1030 615"/>
+            </g>
+            <g id="entityLayer"></g>
+          </svg>
+        </div>
+
+        <div class="transport">
+          <button id="prevFrameBtn" title="Fotograma anterior">◀</button>
+          <button id="playBtn" class="primary">▶ Reproduir</button>
+          <button id="nextFrameBtn" title="Fotograma següent">▶|</button>
+          <span id="frameCounter">1 / 1</span>
+        </div>
+
+        <div class="frames-header">
+          <div>
+            <h2>Fotogrames</h2>
+            <p>Mou els jugadors i duplica el fotograma per crear el següent pas.</p>
+          </div>
+          <div class="frame-actions">
+            <button id="duplicateFrameBtn" class="primary">+ Duplicar</button>
+            <button id="addFrameBtn">+ Nou</button>
+            <button id="deleteFrameBtn" class="danger">Eliminar</button>
+          </div>
+        </div>
+        <div id="timeline" class="timeline"></div>
+      </section>
+
+      <aside class="side-panel">
+        <section class="panel-card">
+          <h2>Projecte</h2>
+          <label>Nom de l'automatisme
+            <input id="projectName" value="Sortida de pilota 01" />
+          </label>
+          <label>Categoria
+            <input id="projectCategory" placeholder="p. ex. vs 4-2-3-1 · bloc alt" />
+          </label>
+          <label>Notes
+            <textarea id="projectNotes" rows="4" placeholder="Principis, consignes, variants..."></textarea>
+          </label>
+        </section>
+
+        <section class="panel-card">
+          <h2>Plantilla del primer equip</h2>
+          <p class="muted">Un jugador per línia. Pots tenir tota la plantilla i escollir després qui ocupa cada posició.</p>
+          <textarea id="rosterInput" rows="10"></textarea>
+          <div class="roster-actions">
+            <button id="saveRosterBtn">Desar plantilla</button>
+            <button id="applyElevenBtn" class="primary">Aplicar primers 11</button>
+          </div>
+        </section>
+
+        <section class="panel-card">
+          <h2>Jugador seleccionat</h2>
+          <div id="noSelection" class="muted">Toca un jugador per editar-lo.</div>
+          <div id="playerEditor" hidden>
+            <label>Número
+              <input id="playerNumber" maxlength="3" />
+            </label>
+            <label>Nom / rol
+              <input id="playerLabel" maxlength="24" />
+            </label>
+            <label>Escollir de la plantilla
+              <select id="playerRosterName"><option value="">— Tria jugador —</option></select>
+            </label>
+            <div class="coord-row"><span>X <strong id="coordX">0</strong></span><span>Y <strong id="coordY">0</strong></span></div>
+          </div>
+        </section>
+
+        <section class="panel-card">
+          <h2>Ajuda ràpida</h2>
+          <ul>
+            <li>Tria si vols veure només el teu equip o també el contrari.</li><li>Fes servir <b>⚽ Posar pilota</b> per afegir-la al centre del camp i arrossega-la on vulguis.</li><li>Arrossega qualsevol jugador o la pilota.</li>
+            <li><b>Duplicar</b> conserva la posició actual i crea el següent fotograma.</li>
+            <li>Mou només els jugadors que canvien de posició.</li>
+            <li><b>Reproduir</b> anima tots els fotogrames consecutivament.</li>
+            <li><b>Desar</b> guarda el projecte en aquest navegador.</li>
+          </ul>
+        </section>
+
+        <section class="panel-card saved-card">
+          <div class="saved-title"><h2>Projectes desats</h2><button id="refreshSavedBtn" class="small">↻</button></div>
+          <div id="savedProjects" class="saved-projects"></div>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <script>
+const SVG_NS='http://www.w3.org/2000/svg';
+const $=id=>document.getElementById(id);
+const clone=o=>JSON.parse(JSON.stringify(o));
+const FIELD={w:1050,h:680,minX:35,maxX:1015,minY:35,maxY:645};
+const DEFAULT_ROSTER=['Tarek','Cami','Sergio','Manchi','Ian','Acevedo','Vlasin','Girabal','Pol','Nil','Tapias','Merlos','Ferri','Serrano','Izan','Antonio','Valen','Soma','Pérez','Manu','Genís'];
+
+const homeBase={
+  GK:[85,340],LB:[230,120],LCB:[205,275],RCB:[205,405],RB:[230,560],DM:[350,340],L8:[445,245],R8:[445,435],AM:[555,340],LS:[690,280],RS:[690,400]
+};
+const awayBase={
+  GK:[965,340],LB:[820,560],LCB:[845,405],RCB:[845,275],RB:[820,120],DML:[710,285],DMR:[710,395],LW:[610,500],AM:[610,340],RW:[610,180],ST:[500,340]
+};
+const labelsHome={GK:['1','PT'],LB:['3','LI'],LCB:['4','DFC'],RCB:['5','DFC'],RB:['2','LD'],DM:['6','MCD'],L8:['8','INT'],R8:['7','INT'],AM:['10','MP'],LS:['11','DC'],RS:['9','DC']};
+const labelsAway={GK:['1','PT'],LB:['3','LI'],LCB:['4','DFC'],RCB:['5','DFC'],RB:['2','LD'],DML:['6','MCD'],DMR:['8','MC'],LW:['11','EI'],AM:['10','MP'],RW:['7','ED'],ST:['9','DC']};
+
+const formations={
+  home:{
+    '442d':homeBase,
+    '4231':{GK:[85,340],LB:[230,120],LCB:[205,275],RCB:[205,405],RB:[230,560],DM:[360,285],L8:[360,395],R8:[500,480],AM:[500,340],LS:[500,200],RS:[675,340]},
+    '442':{GK:[85,340],LB:[230,120],LCB:[205,275],RCB:[205,405],RB:[230,560],DM:[440,160],L8:[440,280],R8:[440,400],AM:[440,520],LS:[650,285],RS:[650,395]},
+    '433':{GK:[85,340],LB:[230,120],LCB:[205,275],RCB:[205,405],RB:[230,560],DM:[390,340],L8:[500,260],R8:[500,420],AM:[660,180],LS:[690,340],RS:[660,500]}
+  },
+  away:{
+    '4231':awayBase,
+    '442':{GK:[965,340],LB:[820,560],LCB:[845,405],RCB:[845,275],RB:[820,120],DML:[650,520],DMR:[650,400],LW:[650,280],AM:[650,160],RW:[500,285],ST:[500,395]},
+    '433':{GK:[965,340],LB:[820,560],LCB:[845,405],RCB:[845,275],RB:[820,120],DML:[680,340],DMR:[600,430],LW:[600,250],AM:[470,500],RW:[450,340],ST:[470,180]},
+    '532':{GK:[965,340],LB:[805,570],LCB:[835,450],RCB:[835,230],RB:[805,110],DML:[825,340],DMR:[650,430],LW:[650,340],AM:[650,250],RW:[500,390],ST:[500,290]}
+  }
+};
+
+function makePlayer(id,team,pos,number,label){return {id,team,x:pos[0],y:pos[1],number,label};}
+function initialEntities(){
+  const entities=[];
+  Object.entries(homeBase).forEach(([id,p])=>entities.push(makePlayer('H_'+id,'home',p,...labelsHome[id])));
+  Object.entries(awayBase).forEach(([id,p])=>entities.push(makePlayer('A_'+id,'away',p,...labelsAway[id])));
+  entities.push({id:'BALL',team:'ball',x:240,y:405,number:'',label:'Pilota'});
+  return entities;
+}
+
+let project={name:'Sortida de pilota 01',category:'',notes:'',frames:[{id:crypto.randomUUID(),entities:initialEntities()}]};
+let currentFrame=0,selectedId=null,drag=null,playing=false,playTimer=null;
+
+function entities(){return project.frames[currentFrame].entities;}
+function getEntity(id){return entities().find(e=>e.id===id);}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+
+function svgPoint(evt){
+  const svg=$('pitch'); const pt=svg.createSVGPoint(); pt.x=evt.clientX;pt.y=evt.clientY;
+  return pt.matrixTransform(svg.getScreenCTM().inverse());
+}
+
+function renderEntities(){
+  const layer=$('entityLayer');layer.innerHTML='';
+  const visibility=$('teamVisibility')?.value||'both';
+  const displayMode=$('playerDisplayMode')?.value||'both';
+  entities().forEach(e=>{
+    if(visibility==='home' && e.team==='away') return;
+    const g=document.createElementNS(SVG_NS,'g');g.setAttribute('id','ent_'+e.id);g.setAttribute('transform',`translate(${e.x} ${e.y})`);g.classList.add('entity');
+    if(e.id===selectedId)g.classList.add('selected');
+    if(e.team==='ball'){
+      g.innerHTML='<circle class="ball-disc" r="16"/><text class="ball-mark" y="1">●</text>';
+    }else{
+      g.classList.add(e.team);
+      if(displayMode==='names')g.innerHTML=`<rect class="name-plate" x="-52" y="-19" width="104" height="38" rx="19"/><text class="name-only-text" y="1">${escapeHtml(e.label||e.number)}</text>`;
+      else if(displayMode==='numbers')g.innerHTML=`<circle class="player-disc" r="23"/><text class="num-text" y="1">${escapeHtml(e.number)}</text>`;
+      else g.innerHTML=`<circle class="player-disc" r="23"/><text class="num-text" y="1">${escapeHtml(e.number)}</text><text class="label-text" y="39">${escapeHtml(e.label)}</text>`;
+    }
+    g.addEventListener('pointerdown',ev=>startDrag(ev,e.id));layer.appendChild(g);
+  });
+  renderEditor();renderTimeline();updateCounter();
+}
+
+function startDrag(evt,id){
+  if(playing)return; evt.preventDefault(); selectedId=id; const e=getEntity(id); const p=svgPoint(evt); drag={id,dx:e.x-p.x,dy:e.y-p.y,pointerId:evt.pointerId};
+  const g=$('ent_'+id);g.setPointerCapture?.(evt.pointerId);g.classList.add('dragging'); renderEditor();renderSelectionOnly();
+}
+function onMove(evt){
+  if(!drag)return; const e=getEntity(drag.id); const p=svgPoint(evt);e.x=clamp(p.x+drag.dx,FIELD.minX,FIELD.maxX);e.y=clamp(p.y+drag.dy,FIELD.minY,FIELD.maxY);
+  const g=$('ent_'+e.id); if(g)g.setAttribute('transform',`translate(${e.x} ${e.y})`); updateCoords(e);
+}
+function endDrag(){if(!drag)return;const g=$('ent_'+drag.id);g?.classList.remove('dragging');drag=null;renderTimeline();}
+$('pitch').addEventListener('pointermove',onMove);window.addEventListener('pointerup',endDrag);window.addEventListener('pointercancel',endDrag);
+
+function renderSelectionOnly(){document.querySelectorAll('.entity').forEach(el=>el.classList.remove('selected'));if(selectedId)$('ent_'+selectedId)?.classList.add('selected');}
+function renderEditor(){
+  const e=selectedId?getEntity(selectedId):null; const player=e&&e.team!=='ball';
+  $('noSelection').hidden=!!player;$('playerEditor').hidden=!player;
+  if(player){$('playerNumber').value=e.number;$('playerLabel').value=e.label;renderRosterSelect(e.label);updateCoords(e);}
+}
+function updateCoords(e){$('coordX').textContent=Math.round(e.x);$('coordY').textContent=Math.round(e.y);}
+$('playerNumber').addEventListener('input',ev=>{if(!selectedId)return;setPlayerFieldAcrossFrames(selectedId,'number',ev.target.value);renderEntities();});
+$('playerLabel').addEventListener('input',ev=>{if(!selectedId)return;setPlayerLabelAcrossFrames(selectedId,ev.target.value);renderEntities();});
+$('playerRosterName').addEventListener('change',ev=>{if(!ev.target.value||!selectedId)return;setPlayerLabelAcrossFrames(selectedId,ev.target.value);renderEntities();});
+
+function frameSnapshot(fromEntities=entities()){return {id:crypto.randomUUID(),entities:clone(fromEntities)};}
+function duplicateFrame(){project.frames.splice(currentFrame+1,0,frameSnapshot());currentFrame++;selectedId=null;renderEntities();}
+function addFrame(){
+  const fresh=initialEntities();
+  const reference=new Map(project.frames[0].entities.map(e=>[e.id,e]));
+  fresh.forEach(e=>{const saved=reference.get(e.id);if(saved){e.number=saved.number;e.label=saved.label;}});
+  project.frames.splice(currentFrame+1,0,frameSnapshot(fresh));currentFrame++;selectedId=null;renderEntities();
+}
+function deleteFrame(){if(project.frames.length===1){alert('El projecte ha de tenir almenys un fotograma.');return;}project.frames.splice(currentFrame,1);currentFrame=Math.max(0,currentFrame-1);selectedId=null;renderEntities();}
+function gotoFrame(i){if(i<0||i>=project.frames.length)return;currentFrame=i;selectedId=null;renderEntities();}
+function renderTimeline(){
+  const t=$('timeline');t.innerHTML='';project.frames.forEach((f,i)=>{const d=document.createElement('div');d.className='frame-chip'+(i===currentFrame?' active':'');d.innerHTML=`<div class="idx">${i+1}</div><div class="meta">fotograma</div>`;d.onclick=()=>gotoFrame(i);t.appendChild(d);});
+}
+function updateCounter(){$('frameCounter').textContent=`${currentFrame+1} / ${project.frames.length}`;}
+
+function animateBetween(fromFrame,toFrame,duration){
+  return new Promise(resolve=>{
+    currentFrame=project.frames.indexOf(fromFrame);renderEntities();
+    const start=performance.now();const mapTo=new Map(toFrame.entities.map(e=>[e.id,e]));
+    function tick(now){
+      if(!playing){resolve();return;}const k=Math.min(1,(now-start)/duration);
+      fromFrame.entities.forEach(a=>{const b=mapTo.get(a.id);if(!b)return;const x=a.x+(b.x-a.x)*k,y=a.y+(b.y-a.y)*k;$('ent_'+a.id)?.setAttribute('transform',`translate(${x} ${y})`);});
+      if(k<1)requestAnimationFrame(tick);else resolve();
+    }requestAnimationFrame(tick);
+  });
+}
+async function play(){
+  if(playing){stop();return;}if(project.frames.length<2)return;playing=true;$('playBtn').textContent='⏸ Pausa';
+  const duration=Number($('speedSelect').value);
+  for(let i=currentFrame;i<project.frames.length-1&&playing;i++){await animateBetween(project.frames[i],project.frames[i+1],duration);if(playing){currentFrame=i+1;renderEntities();await new Promise(r=>setTimeout(r,160));}}
+  if(playing){playing=false;$('playBtn').textContent='▶ Reproduir';renderEntities();}
+}
+function stop(){playing=false;$('playBtn').textContent='▶ Reproduir';renderEntities();}
+
+function applyFormation(team,key){
+  const template=formations[team][key];if(!template)return;const prefix=team==='home'?'H_':'A_';
+  const teamEntities=entities().filter(e=>e.team===team);const positions=Object.values(template);teamEntities.forEach((e,i)=>{const p=positions[i%positions.length];e.x=p[0];e.y=p[1];});renderEntities();
+}
+
+function addBall(){
+  let b=getEntity('BALL');
+  if(!b){entities().push({id:'BALL',team:'ball',x:525,y:340,number:'',label:'Pilota'});}
+  else {b.x=525;b.y=340;}
+  selectedId='BALL';renderEntities();
+}
+function removeBall(){
+  const i=entities().findIndex(e=>e.id==='BALL');
+  if(i>=0) entities().splice(i,1);
+  if(selectedId==='BALL') selectedId=null;
+  renderEntities();
+}
+
+function rosterNames(){return $('rosterInput').value.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);}
+function loadRoster(){
+  let names=DEFAULT_ROSTER;
+  try{const saved=JSON.parse(localStorage.getItem('tacticalBoard:roster:v1'));if(Array.isArray(saved)&&saved.length)names=saved;}catch{}
+  $('rosterInput').value=names.join('\n');
+}
+function persistRoster(showMessage=false){
+  const names=rosterNames();
+  localStorage.setItem('tacticalBoard:roster:v1',JSON.stringify(names));
+  project.roster=names;
+  renderRosterSelect(selectedId&&getEntity(selectedId)?.label||'');
+  if(showMessage)flash('Plantilla desada.');
+}
+function renderRosterSelect(current=''){
+  const select=$('playerRosterName');const names=rosterNames();
+  select.innerHTML='<option value="">— Tria jugador —</option>'+names.map(name=>`<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('');
+  select.value=names.includes(current)?current:'';
+}
+function setPlayerFieldAcrossFrames(id,field,value){project.frames.forEach(f=>{const e=f.entities.find(x=>x.id===id);if(e)e[field]=value;});}
+function setPlayerLabelAcrossFrames(id,name){setPlayerFieldAcrossFrames(id,'label',name);}
+function applyFirstEleven(){
+  const names=rosterNames().slice(0,11);const homeIds=project.frames[0].entities.filter(e=>e.team==='home').map(e=>e.id);
+  homeIds.forEach((id,i)=>{if(names[i])setPlayerLabelAcrossFrames(id,names[i]);});
+  persistRoster();renderEntities();flash('Primers 11 aplicats.');
+}
+function updatePrintTitle(){
+  const bits=[project.name,project.category].filter(Boolean);
+  $('printTitle').textContent=bits.join(' · ');
+}
+function syncProjectMeta(){
+  project.name=$('projectName').value.trim()||'Sense nom';project.category=$('projectCategory').value.trim();project.notes=$('projectNotes').value;
+  project.roster=rosterNames();project.settings={teamVisibility:$('teamVisibility').value,playerDisplayMode:$('playerDisplayMode').value,homeFormation:$('homeFormation').value,awayFormation:$('awayFormation').value};
+  updatePrintTitle();
+}
+function loadMeta(){
+  $('projectName').value=project.name||'';$('projectCategory').value=project.category||'';$('projectNotes').value=project.notes||'';
+  if(Array.isArray(project.roster)&&project.roster.length)$('rosterInput').value=project.roster.join('\n');
+  const s=project.settings||{};['teamVisibility','playerDisplayMode','homeFormation','awayFormation'].forEach(id=>{if(s[id]&&[...$(id).options].some(o=>o.value===s[id]))$(id).value=s[id];});
+  updatePrintTitle();
+}
+function storageKey(name){return 'tacticalBoard:v1:'+name;}
+function saveProject(){syncProjectMeta();persistRoster();project.savedAt=new Date().toISOString();localStorage.setItem(storageKey(project.name),JSON.stringify(project));renderSaved();flash('Projecte i plantilla desats en aquest dispositiu.');}
+function loadProjectByName(name){const raw=localStorage.getItem(storageKey(name));if(!raw)return;project=JSON.parse(raw);currentFrame=0;selectedId=null;loadMeta();renderEntities();flash('Projecte carregat.');}
+function deleteSaved(name){if(confirm(`Eliminar "${name}"?`)){localStorage.removeItem(storageKey(name));renderSaved();}}
+function renderSaved(){
+  const box=$('savedProjects');box.innerHTML='';const keys=Object.keys(localStorage).filter(k=>k.startsWith('tacticalBoard:v1:')).sort();
+  if(!keys.length){box.innerHTML='<div class="muted">Encara no hi ha projectes desats.</div>';return;}
+  keys.forEach(k=>{let p;try{p=JSON.parse(localStorage.getItem(k));}catch{return;}const d=document.createElement('div');d.className='saved-item';const saved=p.savedAt?new Date(p.savedAt).toLocaleDateString('ca-ES'):'data no disponible';d.innerHTML=`<strong>${escapeHtml(p.name)}</strong><small>${escapeHtml(p.category||'Sense categoria')} · ${p.frames?.length||0} fotogrames · ${escapeHtml(saved)}</small><div class="saved-actions"><button data-act="load">Obrir</button><button data-act="delete" class="danger">Eliminar</button></div>`;d.querySelector('[data-act=load]').onclick=()=>loadProjectByName(p.name);d.querySelector('[data-act=delete]').onclick=()=>deleteSaved(p.name);box.appendChild(d);});
+}
+function exportProject(){syncProjectMeta();const blob=new Blob([JSON.stringify(project,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(project.name||'pissarra').replace(/[^a-z0-9-_]+/gi,'_')+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
+function importProject(file){const reader=new FileReader();reader.onload=()=>{try{const p=JSON.parse(reader.result);if(!Array.isArray(p.frames))throw new Error();project=p;currentFrame=0;selectedId=null;loadMeta();renderEntities();flash('Projecte importat.');}catch{alert('Aquest fitxer no és un projecte vàlid.');}};reader.readAsText(file);}
+function flash(msg){const old=document.title;document.title='✓ '+msg;setTimeout(()=>document.title=old,1400);}
+function escapeHtml(s){return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
+
+$('duplicateFrameBtn').onclick=duplicateFrame;$('addFrameBtn').onclick=addFrame;$('deleteFrameBtn').onclick=deleteFrame;$('prevFrameBtn').onclick=()=>gotoFrame(currentFrame-1);$('nextFrameBtn').onclick=()=>gotoFrame(currentFrame+1);$('playBtn').onclick=play;
+$('applyHomeFormation').onclick=()=>applyFormation('home',$('homeFormation').value);$('applyAwayFormation').onclick=()=>applyFormation('away',$('awayFormation').value);
+$('teamVisibility').onchange=()=>{syncProjectMeta();renderEntities();};$('playerDisplayMode').onchange=()=>{syncProjectMeta();renderEntities();};$('addBallBtn').onclick=addBall;$('removeBallBtn').onclick=removeBall;
+$('saveProjectBtn').onclick=saveProject;$('loadProjectBtn').onclick=()=>{renderSaved();document.querySelector('.saved-card')?.scrollIntoView({behavior:'smooth'});};$('refreshSavedBtn').onclick=renderSaved;$('exportBtn').onclick=exportProject;$('importInput').onchange=e=>{if(e.target.files[0])importProject(e.target.files[0]);e.target.value='';};
+$('saveRosterBtn').onclick=()=>persistRoster(true);$('applyElevenBtn').onclick=applyFirstEleven;
+$('printBtn').onclick=()=>{syncProjectMeta();window.print();};
+['projectName','projectCategory','projectNotes'].forEach(id=>$(id).addEventListener('input',syncProjectMeta));
+loadRoster();loadMeta();renderEntities();renderSaved();
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(console.error));}
+
+</script>
+</body>
+</html>

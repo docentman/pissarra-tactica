@@ -12,8 +12,8 @@
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}button,input,select,textarea{font:inherit}.app-shell{max-width:1500px;margin:auto;padding:12px}.topbar{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:12px}.topbar h1{margin:0;font-size:22px}.topbar p{margin:3px 0 0;color:var(--muted);font-size:13px}.header-actions{display:flex;flex-wrap:wrap;gap:7px}.layout{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:12px}.workspace-card,.panel-card{background:var(--panel);border:1px solid var(--line);border-radius:16px}.workspace-card{padding:12px}.panel-card{padding:13px;margin-bottom:12px}.toolbar{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;margin-bottom:10px}.control-group{display:flex;align-items:end;gap:7px}.control-group.compact{margin-left:auto}label{display:block;color:#c8d3d8;font-size:12px}input,select,textarea{width:100%;border:1px solid #34434d;background:#0c1419;color:white;border-radius:9px;padding:8px;margin-top:4px;outline:none}input:focus,select:focus,textarea:focus{border-color:#6a8493}button,.ghost,.file-label{border:1px solid #35434c;background:#17232b;color:white;border-radius:9px;padding:8px 11px;cursor:pointer;user-select:none}.ghost,.file-label{font-size:13px}.primary{background:var(--accent);color:#171717;border-color:var(--accent);font-weight:800}.danger{background:#35181a;border-color:#623135;color:#ffb7b7}.small{padding:4px 8px}.pitch-wrap{width:100%;border-radius:14px;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);touch-action:none}.pitch-wrap svg{width:100%;height:auto;display:block;touch-action:none}.entity{cursor:grab;filter:url(#shadow)}.entity.dragging{cursor:grabbing}.player-disc{stroke:white;stroke-width:2.4}.home .player-disc{fill:var(--blue)}.away .player-disc{fill:var(--red)}.entity text{pointer-events:none;text-anchor:middle;fill:white;font-weight:800}.num-text{font-size:15px;dominant-baseline:middle}.label-text{font-size:11px}.selected .player-disc{stroke:var(--accent);stroke-width:5}.ball-disc{fill:white;stroke:#111;stroke-width:3}.ball-mark{font-size:21px;dominant-baseline:middle;text-anchor:middle;fill:#111;font-weight:900}.transport{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px}.transport #frameCounter{min-width:70px;text-align:center;color:#c4d1d8;font-size:13px}.frames-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px}.frames-header h2,.panel-card h2{font-size:15px;margin:0}.frames-header p{font-size:12px;color:var(--muted);margin:4px 0 0}.frame-actions{display:flex;flex-wrap:wrap;gap:6px}.timeline{display:flex;gap:7px;overflow-x:auto;padding:9px 1px 3px}.frame-chip{flex:0 0 auto;min-width:65px;background:#0e171c;border:1px solid #2b3a43;border-radius:10px;padding:8px;text-align:center;cursor:pointer}.frame-chip.active{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}.frame-chip .idx{font-weight:800}.frame-chip .meta{font-size:10px;color:var(--muted);margin-top:2px}.side-panel{min-width:0}.panel-card label+label{margin-top:10px}.muted{color:var(--muted);font-size:13px}.coord-row{display:flex;gap:15px;color:var(--muted);font-size:12px;margin-top:10px}.saved-title{display:flex;justify-content:space-between;align-items:center}.saved-projects{display:grid;gap:7px;margin-top:9px}.saved-item{border:1px solid #2a3942;background:#0f181e;border-radius:10px;padding:8px}.saved-item strong{font-size:13px}.saved-item small{display:block;color:var(--muted);margin-top:2px}.saved-actions{display:flex;gap:5px;margin-top:7px}.saved-actions button{padding:5px 7px;font-size:11px}.panel-card ul{padding-left:18px;margin:8px 0 0;color:#c1cdd4;font-size:12px;line-height:1.45}
 @media(max-width:1000px){.layout{grid-template-columns:1fr}.side-panel{display:grid;grid-template-columns:1fr 1fr;gap:10px}.panel-card{margin:0}.saved-card{grid-column:1/-1}}
 @media(max-width:680px){.app-shell{padding:7px}.topbar{align-items:flex-start;flex-direction:column}.header-actions{width:100%}.header-actions>*{flex:1;text-align:center}.workspace-card{padding:7px;border-radius:12px}.toolbar{display:grid;grid-template-columns:1fr}.control-group{display:grid;grid-template-columns:1fr auto;align-items:end}.control-group.compact{margin:0;grid-template-columns:1fr}.frames-header{align-items:flex-start;flex-direction:column}.frame-actions{width:100%}.frame-actions button{flex:1}.side-panel{grid-template-columns:1fr}.transport button{padding:9px}.pitch-wrap{border-radius:10px}}
-.name-plate{stroke:white;stroke-width:2.4}.home .name-plate{fill:var(--blue)}.away .name-plate{fill:var(--red)}.name-only-text{font-size:13px;dominant-baseline:middle}.selected .name-plate{stroke:var(--accent);stroke-width:5}.roster-actions{display:flex;gap:7px;margin-top:8px}.roster-actions button{flex:1}.print-title{display:none}
-@media print{html,body{background:white!important}.app-shell{max-width:none;padding:0}.topbar,.toolbar,.transport,.frames-header,.timeline,.side-panel{display:none!important}.layout{display:block}.workspace-card{border:0;padding:0;background:white}.pitch-wrap{box-shadow:none;border-radius:0}.print-title{display:block;color:#111;font-size:20px;font-weight:800;margin:0 0 10px}.pitch-wrap svg{width:100%;height:auto}@page{size:landscape;margin:10mm}}
+.name-plate{stroke:white;stroke-width:2.4}.home .name-plate{fill:var(--blue)}.away .name-plate{fill:var(--red)}.name-only-text{font-size:13px;dominant-baseline:middle}.selected .name-plate{stroke:var(--accent);stroke-width:5}.roster-actions{display:flex;gap:7px;margin-top:8px}.roster-actions button{flex:1}.print-title{display:none}.field-title-input{margin:0 0 9px;text-align:center;font-size:20px;font-weight:800;background:transparent;border:0;border-bottom:1px solid var(--line);border-radius:0}.field-title-input::placeholder{color:#71818b}.palette-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}.palette-item{display:flex;align-items:center;gap:9px;min-height:50px;padding:7px 9px;background:#0e171c;border:1px solid #33434d;border-radius:10px;cursor:grab;text-align:left}.palette-item:active{cursor:grabbing}.palette-dot{width:30px;height:30px;border:2px solid white;border-radius:50%;flex:0 0 auto}.palette-dot.home{background:var(--blue)}.palette-dot.away{background:var(--red)}.palette-name{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.palette-hint{margin:8px 0 0}.editor-actions{margin-top:10px}.field-title-print{display:none}
+@media print{html,body{background:white!important}.app-shell{max-width:none;padding:0}.topbar,.toolbar,.transport,.frames-header,.timeline,.side-panel,.field-title-input{display:none!important}.layout{display:block}.workspace-card{border:0;padding:0;background:white}.pitch-wrap{box-shadow:none;border-radius:0}.print-title,.field-title-print{display:block;color:#111;text-align:center;font-size:20px;font-weight:800;margin:0 0 10px}.pitch-wrap svg{width:100%;height:auto}@page{size:landscape;margin:10mm}}
 
 </style>
 </head>
@@ -21,7 +21,7 @@
   <div class="app-shell">
     <header class="topbar">
       <div>
-        <h1>Pissarra Tàctica V2</h1>
+        <h1>Pissarra Tàctica V3</h1>
         <p>Editor 11v11 · fotogrames · animacions</p>
       </div>
       <div class="header-actions">
@@ -42,15 +42,6 @@
               <select id="teamVisibility">
                 <option value="home">Només el meu equip (blau)</option>
                 <option value="both" selected>El meu equip + contrari</option>
-              </select>
-            </label>
-          </div>
-          <div class="control-group">
-            <label>Visualització dels jugadors
-              <select id="playerDisplayMode">
-                <option value="numbers">Rodones amb números</option>
-                <option value="names">Noms dels jugadors</option>
-                <option value="both" selected>Número i nom</option>
               </select>
             </label>
           </div>
@@ -91,6 +82,8 @@
           </div>
         </div>
 
+        <input id="fieldTitle" class="field-title-input" placeholder="Títol de l'alineació o jugada" aria-label="Títol visible sobre el camp" />
+        <div id="fieldTitlePrint" class="field-title-print"></div>
         <div id="pitchWrap" class="pitch-wrap">
           <svg id="pitch" viewBox="0 0 1050 680" role="img" aria-label="Camp de futbol tàctic interactiu">
             <defs>
@@ -142,6 +135,18 @@
 
       <aside class="side-panel">
         <section class="panel-card">
+          <h2>Elements per afegir al camp</h2>
+          <label>Color de la fitxa
+            <select id="paletteTeam">
+              <option value="home">Blau</option>
+              <option value="away">Vermell</option>
+            </select>
+          </label>
+          <p class="muted palette-hint">Arrossega un element al camp. En mòbil, toca'l per afegir-lo al centre i després mou-lo.</p>
+          <div id="paletteList" class="palette-list"></div>
+        </section>
+
+        <section class="panel-card">
           <h2>Projecte</h2>
           <label>Nom de l'automatisme
             <input id="projectName" value="Sortida de pilota 01" />
@@ -178,13 +183,14 @@
               <select id="playerRosterName"><option value="">— Tria jugador —</option></select>
             </label>
             <div class="coord-row"><span>X <strong id="coordX">0</strong></span><span>Y <strong id="coordY">0</strong></span></div>
+            <div class="editor-actions"><button id="removeSelectedBtn" class="danger">Treure del camp</button></div>
           </div>
         </section>
 
         <section class="panel-card">
           <h2>Ajuda ràpida</h2>
           <ul>
-            <li>Tria si vols veure només el teu equip o també el contrari.</li><li>Fes servir <b>⚽ Posar pilota</b> per afegir-la al centre del camp i arrossega-la on vulguis.</li><li>Arrossega qualsevol jugador o la pilota.</li>
+            <li>Arrossega des del lateral un jugador amb nom o una fitxa buida.</li><li>En mòbil, toca l'element per afegir-lo al centre.</li><li>Fes servir <b>⚽ Posar pilota</b> per afegir-la i arrossega-la on vulguis.</li>
             <li><b>Duplicar</b> conserva la posició actual i crea el següent fotograma.</li>
             <li>Mou només els jugadors que canvien de posició.</li>
             <li><b>Reproduir</b> anima tots els fotogrames consecutivament.</li>
@@ -233,14 +239,10 @@ const formations={
 
 function makePlayer(id,team,pos,number,label){return {id,team,x:pos[0],y:pos[1],number,label};}
 function initialEntities(){
-  const entities=[];
-  Object.entries(homeBase).forEach(([id,p])=>entities.push(makePlayer('H_'+id,'home',p,...labelsHome[id])));
-  Object.entries(awayBase).forEach(([id,p])=>entities.push(makePlayer('A_'+id,'away',p,...labelsAway[id])));
-  entities.push({id:'BALL',team:'ball',x:240,y:405,number:'',label:'Pilota'});
-  return entities;
+  return [];
 }
 
-let project={name:'Sortida de pilota 01',category:'',notes:'',frames:[{id:crypto.randomUUID(),entities:initialEntities()}]};
+let project={name:'Nova pissarra',fieldTitle:'',category:'',notes:'',frames:[{id:crypto.randomUUID(),entities:initialEntities()}]};
 let currentFrame=0,selectedId=null,drag=null,playing=false,playTimer=null;
 
 function entities(){return project.frames[currentFrame].entities;}
@@ -255,7 +257,6 @@ function svgPoint(evt){
 function renderEntities(){
   const layer=$('entityLayer');layer.innerHTML='';
   const visibility=$('teamVisibility')?.value||'both';
-  const displayMode=$('playerDisplayMode')?.value||'both';
   entities().forEach(e=>{
     if(visibility==='home' && e.team==='away') return;
     const g=document.createElementNS(SVG_NS,'g');g.setAttribute('id','ent_'+e.id);g.setAttribute('transform',`translate(${e.x} ${e.y})`);g.classList.add('entity');
@@ -264,9 +265,8 @@ function renderEntities(){
       g.innerHTML='<circle class="ball-disc" r="16"/><text class="ball-mark" y="1">●</text>';
     }else{
       g.classList.add(e.team);
-      if(displayMode==='names')g.innerHTML=`<rect class="name-plate" x="-52" y="-19" width="104" height="38" rx="19"/><text class="name-only-text" y="1">${escapeHtml(e.label||e.number)}</text>`;
-      else if(displayMode==='numbers')g.innerHTML=`<circle class="player-disc" r="23"/><text class="num-text" y="1">${escapeHtml(e.number)}</text>`;
-      else g.innerHTML=`<circle class="player-disc" r="23"/><text class="num-text" y="1">${escapeHtml(e.number)}</text><text class="label-text" y="39">${escapeHtml(e.label)}</text>`;
+      const kind=e.kind||(e.label?'named':'blank');
+      g.innerHTML=kind==='blank'?'<circle class="player-disc" r="23"/>':`<circle class="player-disc" r="23"/><text class="label-text" y="39">${escapeHtml(e.label)}</text>`;
     }
     g.addEventListener('pointerdown',ev=>startDrag(ev,e.id));layer.appendChild(g);
   });
@@ -298,10 +298,7 @@ $('playerRosterName').addEventListener('change',ev=>{if(!ev.target.value||!selec
 function frameSnapshot(fromEntities=entities()){return {id:crypto.randomUUID(),entities:clone(fromEntities)};}
 function duplicateFrame(){project.frames.splice(currentFrame+1,0,frameSnapshot());currentFrame++;selectedId=null;renderEntities();}
 function addFrame(){
-  const fresh=initialEntities();
-  const reference=new Map(project.frames[0].entities.map(e=>[e.id,e]));
-  fresh.forEach(e=>{const saved=reference.get(e.id);if(saved){e.number=saved.number;e.label=saved.label;}});
-  project.frames.splice(currentFrame+1,0,frameSnapshot(fresh));currentFrame++;selectedId=null;renderEntities();
+  project.frames.splice(currentFrame+1,0,frameSnapshot([]));currentFrame++;selectedId=null;renderEntities();
 }
 function deleteFrame(){if(project.frames.length===1){alert('El projecte ha de tenir almenys un fotograma.');return;}project.frames.splice(currentFrame,1);currentFrame=Math.max(0,currentFrame-1);selectedId=null;renderEntities();}
 function gotoFrame(i){if(i<0||i>=project.frames.length)return;currentFrame=i;selectedId=null;renderEntities();}
@@ -347,6 +344,29 @@ function removeBall(){
   renderEntities();
 }
 
+function addPaletteEntity(kind,label='',x=525,y=340){
+  const team=$('paletteTeam').value;
+  const id='P_'+crypto.randomUUID();
+  entities().push({id,team,kind,x:clamp(x,FIELD.minX,FIELD.maxX),y:clamp(y,FIELD.minY,FIELD.maxY),number:'',label:kind==='named'?label:''});
+  selectedId=id;renderEntities();
+}
+function renderPalette(){
+  const box=$('paletteList');box.innerHTML='';
+  const items=[{kind:'blank',label:'Rodona buida'},...rosterNames().map(label=>({kind:'named',label}))];
+  items.forEach(item=>{
+    const b=document.createElement('button');b.type='button';b.className='palette-item';b.draggable=true;
+    b.innerHTML=`<span class="palette-dot ${$('paletteTeam').value}"></span><span class="palette-name">${escapeHtml(item.label)}</span>`;
+    b.addEventListener('dragstart',ev=>{ev.dataTransfer.setData('application/json',JSON.stringify(item));ev.dataTransfer.effectAllowed='copy';});
+    b.addEventListener('click',()=>addPaletteEntity(item.kind,item.label));box.appendChild(b);
+  });
+}
+const pitchWrap=$('pitchWrap');
+pitchWrap.addEventListener('dragover',ev=>{ev.preventDefault();ev.dataTransfer.dropEffect='copy';});
+pitchWrap.addEventListener('drop',ev=>{ev.preventDefault();try{const item=JSON.parse(ev.dataTransfer.getData('application/json'));const p=svgPoint(ev);addPaletteEntity(item.kind,item.label,p.x,p.y);}catch{}});
+function removeSelected(){
+  if(!selectedId)return;project.frames.forEach(f=>{f.entities=f.entities.filter(e=>e.id!==selectedId);});selectedId=null;renderEntities();
+}
+
 function rosterNames(){return $('rosterInput').value.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);}
 function loadRoster(){
   let names=DEFAULT_ROSTER;
@@ -358,6 +378,7 @@ function persistRoster(showMessage=false){
   localStorage.setItem('tacticalBoard:roster:v1',JSON.stringify(names));
   project.roster=names;
   renderRosterSelect(selectedId&&getEntity(selectedId)?.label||'');
+  renderPalette();
   if(showMessage)flash('Plantilla desada.');
 }
 function renderRosterSelect(current=''){
@@ -373,18 +394,19 @@ function applyFirstEleven(){
   persistRoster();renderEntities();flash('Primers 11 aplicats.');
 }
 function updatePrintTitle(){
-  const bits=[project.name,project.category].filter(Boolean);
-  $('printTitle').textContent=bits.join(' · ');
+  const bits=[project.name,project.category].filter(Boolean);$('printTitle').textContent=bits.join(' · ');
+  $('fieldTitlePrint').textContent=project.fieldTitle||'';
 }
 function syncProjectMeta(){
-  project.name=$('projectName').value.trim()||'Sense nom';project.category=$('projectCategory').value.trim();project.notes=$('projectNotes').value;
-  project.roster=rosterNames();project.settings={teamVisibility:$('teamVisibility').value,playerDisplayMode:$('playerDisplayMode').value,homeFormation:$('homeFormation').value,awayFormation:$('awayFormation').value};
+  project.name=$('projectName').value.trim()||'Sense nom';project.fieldTitle=$('fieldTitle').value;project.category=$('projectCategory').value.trim();project.notes=$('projectNotes').value;
+  project.roster=rosterNames();project.settings={teamVisibility:$('teamVisibility').value,homeFormation:$('homeFormation').value,awayFormation:$('awayFormation').value};
   updatePrintTitle();
 }
 function loadMeta(){
-  $('projectName').value=project.name||'';$('projectCategory').value=project.category||'';$('projectNotes').value=project.notes||'';
+  $('projectName').value=project.name||'';$('fieldTitle').value=project.fieldTitle||'';$('projectCategory').value=project.category||'';$('projectNotes').value=project.notes||'';
   if(Array.isArray(project.roster)&&project.roster.length)$('rosterInput').value=project.roster.join('\n');
-  const s=project.settings||{};['teamVisibility','playerDisplayMode','homeFormation','awayFormation'].forEach(id=>{if(s[id]&&[...$(id).options].some(o=>o.value===s[id]))$(id).value=s[id];});
+  const s=project.settings||{};['teamVisibility','homeFormation','awayFormation'].forEach(id=>{if(s[id]&&[...$(id).options].some(o=>o.value===s[id]))$(id).value=s[id];});
+  renderPalette();
   updatePrintTitle();
 }
 function storageKey(name){return 'tacticalBoard:v1:'+name;}
@@ -403,12 +425,12 @@ function escapeHtml(s){return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;',
 
 $('duplicateFrameBtn').onclick=duplicateFrame;$('addFrameBtn').onclick=addFrame;$('deleteFrameBtn').onclick=deleteFrame;$('prevFrameBtn').onclick=()=>gotoFrame(currentFrame-1);$('nextFrameBtn').onclick=()=>gotoFrame(currentFrame+1);$('playBtn').onclick=play;
 $('applyHomeFormation').onclick=()=>applyFormation('home',$('homeFormation').value);$('applyAwayFormation').onclick=()=>applyFormation('away',$('awayFormation').value);
-$('teamVisibility').onchange=()=>{syncProjectMeta();renderEntities();};$('playerDisplayMode').onchange=()=>{syncProjectMeta();renderEntities();};$('addBallBtn').onclick=addBall;$('removeBallBtn').onclick=removeBall;
+$('teamVisibility').onchange=()=>{syncProjectMeta();renderEntities();};$('addBallBtn').onclick=addBall;$('removeBallBtn').onclick=removeBall;$('paletteTeam').onchange=renderPalette;$('removeSelectedBtn').onclick=removeSelected;
 $('saveProjectBtn').onclick=saveProject;$('loadProjectBtn').onclick=()=>{renderSaved();document.querySelector('.saved-card')?.scrollIntoView({behavior:'smooth'});};$('refreshSavedBtn').onclick=renderSaved;$('exportBtn').onclick=exportProject;$('importInput').onchange=e=>{if(e.target.files[0])importProject(e.target.files[0]);e.target.value='';};
 $('saveRosterBtn').onclick=()=>persistRoster(true);$('applyElevenBtn').onclick=applyFirstEleven;
 $('printBtn').onclick=()=>{syncProjectMeta();window.print();};
-['projectName','projectCategory','projectNotes'].forEach(id=>$(id).addEventListener('input',syncProjectMeta));
-loadRoster();loadMeta();renderEntities();renderSaved();
+['projectName','fieldTitle','projectCategory','projectNotes'].forEach(id=>$(id).addEventListener('input',syncProjectMeta));
+loadRoster();loadMeta();renderPalette();renderEntities();renderSaved();
 if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(console.error));}
 
 </script>

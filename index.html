@@ -21,7 +21,7 @@
   <div class="app-shell">
     <header class="topbar">
       <div>
-        <h1>Pissarra Tàctica V4</h1>
+        <h1>Pissarra Tàctica V5</h1>
         <p>Editor 11v11 · fotogrames · animacions</p>
       </div>
       <div class="header-actions">
@@ -334,7 +334,14 @@ function stop(){playing=false;$('playBtn').textContent='▶ Reproduir';renderEnt
 
 function applyFormation(team,key){
   const template=formations[team][key];if(!template)return;const prefix=team==='home'?'H_':'A_';
-  const teamEntities=entities().filter(e=>e.team===team);const positions=Object.values(template);teamEntities.forEach((e,i)=>{const p=positions[i%positions.length];e.x=p[0];e.y=p[1];});renderEntities();
+  const positions=Object.values(template);const teamEntities=entities().filter(e=>e.team===team);const names=team==='home'?rosterNames():[];
+  while(teamEntities.length<positions.length){
+    const i=teamEntities.length,label=names[i]||'';
+    const player={id:prefix+crypto.randomUUID(),team,kind:label?'named':'blank',x:positions[i][0],y:positions[i][1],number:'',label};
+    entities().push(player);teamEntities.push(player);
+  }
+  teamEntities.slice(0,positions.length).forEach((e,i)=>{e.x=positions[i][0];e.y=positions[i][1];});
+  selectedId=null;renderEntities();flash('Sistema aplicat a l’equip '+(team==='home'?'blau.':'vermell.'));
 }
 
 function addBall(){

@@ -21,10 +21,11 @@
   <div class="app-shell">
     <header class="topbar">
       <div>
-        <h1>Pissarra Tàctica V5</h1>
+        <h1>Pissarra Tàctica V6</h1>
         <p>Editor 11v11 · fotogrames · animacions</p>
       </div>
       <div class="header-actions">
+        <button id="undoBtn" class="ghost" disabled>↶ Desfer</button>
         <button id="saveProjectBtn" class="ghost">Desar</button>
         <button id="loadProjectBtn" class="ghost">Carregar</button>
         <button id="exportBtn" class="ghost">Exportar</button>
@@ -59,6 +60,12 @@
                 <option value="433">4-3-3</option>
               </select>
             </label>
+            <label>Fitxes
+              <select id="homeMarkerStyle">
+                <option value="named" selected>Amb noms</option>
+                <option value="blank">Sense noms</option>
+              </select>
+            </label>
             <button id="applyHomeFormation">Aplicar</button>
           </div>
           <div class="control-group">
@@ -68,6 +75,12 @@
                 <option value="442">4-4-2</option>
                 <option value="433">4-3-3</option>
                 <option value="532">5-3-2</option>
+              </select>
+            </label>
+            <label>Fitxes
+              <select id="awayMarkerStyle">
+                <option value="blank" selected>Sense noms</option>
+                <option value="named">Amb noms</option>
               </select>
             </label>
             <button id="applyAwayFormation">Aplicar</button>
@@ -250,6 +263,19 @@ function initialEntities(){
 
 let project={name:'Nova pissarra',rival:'',category:'',notes:'',frames:[{id:crypto.randomUUID(),title:'',entities:initialEntities()}]};
 let currentFrame=0,selectedId=null,drag=null,playing=false,playTimer=null;
+const undoStack=[];
+
+function updateUndoButton(){$('undoBtn').disabled=!undoStack.length;}
+function pushUndo(){
+  undoStack.push({project:clone(project),currentFrame});
+  if(undoStack.length>40)undoStack.shift();
+  updateUndoButton();
+}
+function undo(){
+  const previous=undoStack.pop();if(!previous)return;
+  project=previous.project;currentFrame=Math.min(previous.currentFrame,project.frames.length-1);selectedId=null;drag=null;
+  loadMeta();renderEntities();updateUndoButton();flash('Acció desfeta.');
+}
 
 function entities(){return project.frames[currentFrame].entities;}
 function getEntity(id){return entities().find(e=>e.id===id);}
@@ -280,7 +306,7 @@ function renderEntities(){
 }
 
 function startDrag(evt,id){
-  if(playing)return; evt.preventDefault(); selectedId=id; const e=getEntity(id); const p=svgPoint(evt); drag={id,dx:e.x-p.x,dy:e.y-p.y,pointerId:evt.pointerId};
+  if(playing)return; evt.preventDefault(); pushUndo();selectedId=id; const e=getEntity(id); const p=svgPoint(evt); drag={id,dx:e.x-p.x,dy:e.y-p.y,pointerId:evt.pointerId};
   const g=$('ent_'+id);g.setPointerCapture?.(evt.pointerId);g.classList.add('dragging'); renderEditor();renderSelectionOnly();
 }
 function onMove(evt){
@@ -302,11 +328,11 @@ $('playerLabel').addEventListener('input',ev=>{if(!selectedId)return;setPlayerLa
 $('playerRosterName').addEventListener('change',ev=>{if(!ev.target.value||!selectedId)return;setPlayerLabelAcrossFrames(selectedId,ev.target.value);renderEntities();});
 
 function frameSnapshot(fromEntities=entities(),title=$('fieldTitle').value){return {id:crypto.randomUUID(),title,entities:clone(fromEntities)};}
-function duplicateFrame(){project.frames.splice(currentFrame+1,0,frameSnapshot());currentFrame++;selectedId=null;renderEntities();}
+function duplicateFrame(){pushUndo();project.frames.splice(currentFrame+1,0,frameSnapshot());currentFrame++;selectedId=null;renderEntities();}
 function addFrame(){
-  project.frames.splice(currentFrame+1,0,frameSnapshot([],''));currentFrame++;selectedId=null;renderEntities();
+  pushUndo();project.frames.splice(currentFrame+1,0,frameSnapshot([],''));currentFrame++;selectedId=null;renderEntities();
 }
-function deleteFrame(){if(project.frames.length===1){alert('El projecte ha de tenir almenys un fotograma.');return;}project.frames.splice(currentFrame,1);currentFrame=Math.max(0,currentFrame-1);selectedId=null;renderEntities();}
+function deleteFrame(){if(project.frames.length===1){alert('El projecte ha de tenir almenys un fotograma.');return;}pushUndo();project.frames.splice(currentFrame,1);currentFrame=Math.max(0,currentFrame-1);selectedId=null;renderEntities();}
 function gotoFrame(i){if(i<0||i>=project.frames.length)return;currentFrame=i;selectedId=null;renderEntities();}
 function renderTimeline(){
   const t=$('timeline');t.innerHTML='';project.frames.forEach((f,i)=>{const d=document.createElement('div');d.className='frame-chip'+(i===currentFrame?' active':'');d.innerHTML=`<div class="idx">${i+1}</div><div class="meta">fotograma</div>`;d.onclick=()=>gotoFrame(i);t.appendChild(d);});
@@ -334,17 +360,20 @@ function stop(){playing=false;$('playBtn').textContent='▶ Reproduir';renderEnt
 
 function applyFormation(team,key){
   const template=formations[team][key];if(!template)return;const prefix=team==='home'?'H_':'A_';
-  const positions=Object.values(template);const teamEntities=entities().filter(e=>e.team===team);const names=team==='home'?rosterNames():[];
+  pushUndo();
+  const positions=Object.values(template);const teamEntities=entities().filter(e=>e.team===team);const names=rosterNames();
+  const style=$(team==='home'?'homeMarkerStyle':'awayMarkerStyle').value;
   while(teamEntities.length<positions.length){
-    const i=teamEntities.length,label=names[i]||'';
-    const player={id:prefix+crypto.randomUUID(),team,kind:label?'named':'blank',x:positions[i][0],y:positions[i][1],number:'',label};
+    const i=teamEntities.length,label=style==='named'?(names[i]||('Jugador '+(i+1))):'';
+    const player={id:prefix+crypto.randomUUID(),team,kind:style,x:positions[i][0],y:positions[i][1],number:'',label};
     entities().push(player);teamEntities.push(player);
   }
-  teamEntities.slice(0,positions.length).forEach((e,i)=>{e.x=positions[i][0];e.y=positions[i][1];});
+  teamEntities.slice(0,positions.length).forEach((e,i)=>{e.x=positions[i][0];e.y=positions[i][1];e.kind=style;e.label=style==='named'?(names[i]||('Jugador '+(i+1))):'';});
   selectedId=null;renderEntities();flash('Sistema aplicat a l’equip '+(team==='home'?'blau.':'vermell.'));
 }
 
 function addBall(){
+  pushUndo();
   let b=getEntity('BALL');
   if(!b){entities().push({id:'BALL',team:'ball',x:525,y:340,number:'',label:'Pilota'});}
   else {b.x=525;b.y=340;}
@@ -352,12 +381,14 @@ function addBall(){
 }
 function removeBall(){
   const i=entities().findIndex(e=>e.id==='BALL');
+  if(i<0)return;pushUndo();
   if(i>=0) entities().splice(i,1);
   if(selectedId==='BALL') selectedId=null;
   renderEntities();
 }
 
 function addPaletteEntity(kind,label='',x=525,y=340){
+  pushUndo();
   const team=$('paletteTeam').value;
   const id='P_'+crypto.randomUUID();
   entities().push({id,team,kind,x:clamp(x,FIELD.minX,FIELD.maxX),y:clamp(y,FIELD.minY,FIELD.maxY),number:'',label:kind==='named'?label:''});
@@ -377,7 +408,7 @@ const pitchWrap=$('pitchWrap');
 pitchWrap.addEventListener('dragover',ev=>{ev.preventDefault();ev.dataTransfer.dropEffect='copy';});
 pitchWrap.addEventListener('drop',ev=>{ev.preventDefault();try{const item=JSON.parse(ev.dataTransfer.getData('application/json'));const p=svgPoint(ev);addPaletteEntity(item.kind,item.label,p.x,p.y);}catch{}});
 function removeSelected(){
-  if(!selectedId)return;project.frames.forEach(f=>{f.entities=f.entities.filter(e=>e.id!==selectedId);});selectedId=null;renderEntities();
+  if(!selectedId)return;pushUndo();project.frames.forEach(f=>{f.entities=f.entities.filter(e=>e.id!==selectedId);});selectedId=null;renderEntities();
 }
 
 function rosterNames(){return $('rosterInput').value.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);}
@@ -417,14 +448,14 @@ function loadFrameTitle(){
 function syncProjectMeta(){
   project.name=$('projectName').value.trim()||'Sense nom';project.rival=$('rivalName').value.trim();project.category=$('projectCategory').value.trim();project.notes=$('projectNotes').value;
   if(project.frames[currentFrame])project.frames[currentFrame].title=$('fieldTitle').value;
-  project.roster=rosterNames();project.settings={teamVisibility:$('teamVisibility').value,homeFormation:$('homeFormation').value,awayFormation:$('awayFormation').value};
+  project.roster=rosterNames();project.settings={teamVisibility:$('teamVisibility').value,homeFormation:$('homeFormation').value,awayFormation:$('awayFormation').value,homeMarkerStyle:$('homeMarkerStyle').value,awayMarkerStyle:$('awayMarkerStyle').value};
   updatePrintTitle();
 }
 function loadMeta(){
   $('projectName').value=project.name||'';$('rivalName').value=project.rival||'';$('projectCategory').value=project.category||'';$('projectNotes').value=project.notes||'';
   project.frames.forEach((frame,i)=>{if(typeof frame.title!=='string')frame.title=i===0?(project.fieldTitle||''):'';});
   if(Array.isArray(project.roster)&&project.roster.length)$('rosterInput').value=project.roster.join('\n');
-  const s=project.settings||{};['teamVisibility','homeFormation','awayFormation'].forEach(id=>{if(s[id]&&[...$(id).options].some(o=>o.value===s[id]))$(id).value=s[id];});
+  const s=project.settings||{};['teamVisibility','homeFormation','awayFormation','homeMarkerStyle','awayMarkerStyle'].forEach(id=>{if(s[id]&&[...$(id).options].some(o=>o.value===s[id]))$(id).value=s[id];});
   renderPalette();loadFrameTitle();
   updatePrintTitle();
 }
@@ -463,6 +494,7 @@ function flash(msg){const old=document.title;document.title='✓ '+msg;setTimeou
 function escapeHtml(s){return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
 
 $('duplicateFrameBtn').onclick=duplicateFrame;$('addFrameBtn').onclick=addFrame;$('deleteFrameBtn').onclick=deleteFrame;$('prevFrameBtn').onclick=()=>gotoFrame(currentFrame-1);$('nextFrameBtn').onclick=()=>gotoFrame(currentFrame+1);$('playBtn').onclick=play;
+$('undoBtn').onclick=undo;
 $('applyHomeFormation').onclick=()=>applyFormation('home',$('homeFormation').value);$('applyAwayFormation').onclick=()=>applyFormation('away',$('awayFormation').value);
 $('teamVisibility').onchange=()=>{syncProjectMeta();renderEntities();};$('addBallBtn').onclick=addBall;$('removeBallBtn').onclick=removeBall;$('paletteTeam').onchange=renderPalette;$('removeSelectedBtn').onclick=removeSelected;
 $('saveProjectBtn').onclick=saveProject;$('loadProjectBtn').onclick=()=>{renderSaved();document.querySelector('.saved-card')?.scrollIntoView({behavior:'smooth'});};$('refreshSavedBtn').onclick=renderSaved;$('exportBtn').onclick=exportProject;$('importInput').onchange=e=>{if(e.target.files[0])importProject(e.target.files[0]);e.target.value='';};

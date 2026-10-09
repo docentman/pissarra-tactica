@@ -230,7 +230,7 @@ const DOC_GENERATOR_URL='https://script.google.com/macros/s/AKfycbxFBLuELtzT97xL
 const $=id=>document.getElementById(id);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const FIELD={w:1050,h:680,minX:35,maxX:1015,minY:35,maxY:645};
-const DEFAULT_ROSTER=['Tarek','Cami','Sergio','Manchi','Ian','Acevedo','Vlasin','Girabal','Pol','Nil','Tapias','Merlos','Ferri','Serrano','Izan','Antonio','Valen','Soma','Pérez','Manu','Genís'];
+const DEFAULT_ROSTER=['Tarek','Cami','Sergio','Manchi','Ian','Acevedo','Gerard T','Girabal','Artur','Nil','Tapias','Merlos','Ferri','Serrano','Izan','Txema','Valen','Soma','Pérez','Manu'];
 
 const homeBase={
   GK:[85,340],LB:[230,120],LCB:[205,275],RCB:[205,405],RB:[230,560],DM:[350,340],L8:[445,245],R8:[445,435],AM:[555,340],LS:[690,280],RS:[690,400]
@@ -325,7 +325,7 @@ function renderEntities(){
     }else{
       g.classList.add(e.team);
       const kind=e.kind||(e.label?'named':'blank');
-      g.innerHTML=kind==='blank'?'<circle class="player-disc" r="23"/>':`<circle class="player-disc" r="23"/><text class="label-text" y="39">${escapeHtml(e.label)}</text>`;
+      g.innerHTML=kind==='blank'?`<circle class="player-disc" r="23"/><text class="label-text" y="39">${escapeHtml(e.label||'')}</text>`:`<circle class="player-disc" r="23"/><text class="label-text" y="39">${escapeHtml(e.label)}</text>`;
     }
     g.addEventListener('pointerdown',ev=>startDrag(ev,e.id));layer.appendChild(g);
   });
@@ -423,7 +423,7 @@ function addPaletteEntity(kind,label='',x=525,y=340){
 }
 function renderPalette(){
   const box=$('paletteList');box.innerHTML='';
-  const items=[{kind:'blank',label:'Rodona buida'},...rosterNames().map(label=>({kind:'named',label}))];
+  const items=[{kind:'blank',label:'Rodona buida editable'},...rosterNames().map(label=>({kind:'named',label}))];
   items.forEach(item=>{
     const b=document.createElement('button');b.type='button';b.className='palette-item';b.draggable=true;
     b.innerHTML=`<span class="palette-dot ${$('paletteTeam').value}"></span><span class="palette-name">${escapeHtml(item.label)}</span>`;
@@ -441,7 +441,7 @@ function removeSelected(){
 function rosterNames(){return $('rosterInput').value.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);}
 function loadRoster(){
   let names=DEFAULT_ROSTER;
-  try{const saved=JSON.parse(localStorage.getItem('tacticalBoard:roster:v1'));if(Array.isArray(saved)&&saved.length)names=saved;}catch{}
+  try{const saved=JSON.parse(localStorage.getItem('tacticalBoard:roster:v1'));if(Array.isArray(saved)&&saved.length && saved.some(n=>!DEFAULT_ROSTER.includes(n)))names=saved;}catch{}
   $('rosterInput').value=names.join('\n');
 }
 function persistRoster(showMessage=false){

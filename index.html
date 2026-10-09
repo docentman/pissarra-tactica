@@ -85,7 +85,7 @@
             </label>
             <button id="applyAwayFormation">Aplicar</button>
           </div>
-          <div class="control-group compact">
+          <div class="control-group"><label>Vista del camp<select id="pitchView"><option value="full">Camp complet</option><option value="half">Mig camp vertical ampliat</option></select></label><label>Eina<select id="drawTool"><option value="move">Moure jugadors</option><option value="line">Línia</option><option value="arrow">Fletxa</option></select></label><label>Color<input id="drawColor" type="color" value="#ffe066"></label><button id="clearDrawingsBtn">Esborrar traços</button></div><div class="control-group compact">
             <label>Velocitat
               <select id="speedSelect">
                 <option value="1800">Lenta</option>
@@ -122,7 +122,7 @@
               <path d="M20 615 A45 45 0 0 1 65 660"/>
               <path d="M985 660 A45 45 0 0 1 1030 615"/>
             </g>
-            <g id="entityLayer"></g>
+            <g id="drawingLayer"></g><g id="entityLayer"></g>
           </svg>
         </div>
 
@@ -286,7 +286,34 @@ function svgPoint(evt){
   return pt.matrixTransform(svg.getScreenCTM().inverse());
 }
 
+
+let drawingStart=null;
+function frameDrawings(){return project.frames[currentFrame].drawings ||= [];}
+function renderDrawings(){
+ const layer=$('drawingLayer');layer.innerHTML='';
+ const defs=$('pitch').querySelector('defs');
+ if(!document.getElementById('arrowTip')){const marker=document.createElementNS(SVG_NS,'marker');marker.id='arrowTip';marker.setAttribute('markerWidth','9');marker.setAttribute('markerHeight','9');marker.setAttribute('refX','8');marker.setAttribute('refY','4');marker.setAttribute('orient','auto');marker.setAttribute('markerUnits','strokeWidth');marker.innerHTML='<path d="M0 0 L8 4 L0 8 Z" fill="context-stroke"/>';defs.appendChild(marker);}
+ frameDrawings().forEach(d=>{const line=document.createElementNS(SVG_NS,'line');for(const [k,v] of Object.entries({x1:d.x1,y1:d.y1,x2:d.x2,y2:d.y2,stroke:d.color||'#ffe066','stroke-width':5,'stroke-linecap':'round'}))line.setAttribute(k,v);if(d.type==='arrow')line.setAttribute('marker-end','url(#arrowTip)');layer.appendChild(line);});
+}
+function updatePitchView(){
+ const half=$('pitchView').value==='half';
+ $('pitch').setAttribute('viewBox',half?'525 20 505 640':'0 0 1050 680');
+ $('pitchWrap').style.maxWidth=half?'780px':'none';
+ $('pitchWrap').style.margin='auto';
+}
+$('pitchView').addEventListener('change',updatePitchView);
+$('pitch').addEventListener('pointerdown',ev=>{
+ if($('drawTool').value==='move'||ev.target.closest('.entity'))return;
+ ev.preventDefault();const p=svgPoint(ev);drawingStart={x1:p.x,y1:p.y,x2:p.x,y2:p.y,type:$('drawTool').value,color:$('drawColor').value};
+ $('pitch').setPointerCapture(ev.pointerId);
+});
+$('pitch').addEventListener('pointermove',ev=>{if(!drawingStart)return;const p=svgPoint(ev);drawingStart.x2=p.x;drawingStart.y2=p.y;renderDrawings();const line=document.createElementNS(SVG_NS,'line');for(const [k,v] of Object.entries({x1:drawingStart.x1,y1:drawingStart.y1,x2:p.x,y2:p.y,stroke:drawingStart.color,'stroke-width':5,'stroke-linecap':'round'}))line.setAttribute(k,v);if(drawingStart.type==='arrow')line.setAttribute('marker-end','url(#arrowTip)');$('drawingLayer').appendChild(line);});
+function finishDrawing(){if(!drawingStart)return;const d=drawingStart;drawingStart=null;if(Math.hypot(d.x2-d.x1,d.y2-d.y1)>5){pushUndo();frameDrawings().push(d);}renderDrawings();}
+$('pitch').addEventListener('pointerup',finishDrawing);$('pitch').addEventListener('pointercancel',()=>{drawingStart=null;renderDrawings();});
+$('clearDrawingsBtn').addEventListener('click',()=>{if(!frameDrawings().length)return;pushUndo();project.frames[currentFrame].drawings=[];renderDrawings();});
+
 function renderEntities(){
+  renderDrawings();
   const layer=$('entityLayer');layer.innerHTML='';
   const visibility=$('teamVisibility')?.value||'both';
   entities().forEach(e=>{
@@ -306,7 +333,7 @@ function renderEntities(){
 }
 
 function startDrag(evt,id){
-  if(playing)return; evt.preventDefault(); pushUndo();selectedId=id; const e=getEntity(id); const p=svgPoint(evt); drag={id,dx:e.x-p.x,dy:e.y-p.y,pointerId:evt.pointerId};
+  if(playing||$('drawTool').value!=='move')return; evt.preventDefault(); pushUndo();selectedId=id; const e=getEntity(id); const p=svgPoint(evt); drag={id,dx:e.x-p.x,dy:e.y-p.y,pointerId:evt.pointerId};
   const g=$('ent_'+id);g.setPointerCapture?.(evt.pointerId);g.classList.add('dragging'); renderEditor();renderSelectionOnly();
 }
 function onMove(evt){
@@ -327,10 +354,10 @@ $('playerNumber').addEventListener('input',ev=>{if(!selectedId)return;setPlayerF
 $('playerLabel').addEventListener('input',ev=>{if(!selectedId)return;setPlayerLabelAcrossFrames(selectedId,ev.target.value);renderEntities();});
 $('playerRosterName').addEventListener('change',ev=>{if(!ev.target.value||!selectedId)return;setPlayerLabelAcrossFrames(selectedId,ev.target.value);renderEntities();});
 
-function frameSnapshot(fromEntities=entities(),title=$('fieldTitle').value){return {id:crypto.randomUUID(),title,entities:clone(fromEntities)};}
+function frameSnapshot(fromEntities=entities(),title=$('fieldTitle').value){return {id:crypto.randomUUID(),title,entities:clone(fromEntities),drawings:clone(frameDrawings())};}
 function duplicateFrame(){pushUndo();project.frames.splice(currentFrame+1,0,frameSnapshot());currentFrame++;selectedId=null;renderEntities();}
 function addFrame(){
-  pushUndo();project.frames.splice(currentFrame+1,0,frameSnapshot([],''));currentFrame++;selectedId=null;renderEntities();
+  pushUndo();project.frames.splice(currentFrame+1,0,{...frameSnapshot([],''),drawings:[]});currentFrame++;selectedId=null;renderEntities();
 }
 function deleteFrame(){if(project.frames.length===1){alert('El projecte ha de tenir almenys un fotograma.');return;}pushUndo();project.frames.splice(currentFrame,1);currentFrame=Math.max(0,currentFrame-1);selectedId=null;renderEntities();}
 function gotoFrame(i){if(i<0||i>=project.frames.length)return;currentFrame=i;selectedId=null;renderEntities();}

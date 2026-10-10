@@ -21,7 +21,7 @@
   <div class="app-shell">
     <header class="topbar">
       <div>
-        <h1>Pissarra Tàctica V6</h1>
+        <h1>Pissarra Tàctica V7</h1>
         <p>Editor 11v11 · fotogrames · animacions</p>
       </div>
       <div class="header-actions">
@@ -325,7 +325,7 @@ function renderEntities(){
     }else{
       g.classList.add(e.team);
       const kind=e.kind||(e.label?'named':'blank');
-      g.innerHTML=kind==='blank'?`<circle class="player-disc" r="23"/><text class="label-text" y="39">${escapeHtml(e.label||'')}</text>`:`<circle class="player-disc" r="23"/><text class="label-text" y="39">${escapeHtml(e.label)}</text>`;
+      g.innerHTML=kind==='blank'?`<circle class="player-disc" r="15"/><text class="label-text" y="28">${escapeHtml(e.label||'')}</text>`:`<circle class="player-disc" r="15"/><text class="label-text" y="28">${escapeHtml(e.label)}</text>`;
     }
     g.addEventListener('pointerdown',ev=>startDrag(ev,e.id));layer.appendChild(g);
   });
@@ -440,9 +440,15 @@ function removeSelected(){
 
 function rosterNames(){return $('rosterInput').value.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);}
 function loadRoster(){
-  let names=DEFAULT_ROSTER;
-  try{const saved=JSON.parse(localStorage.getItem('tacticalBoard:roster:v1'));if(Array.isArray(saved)&&saved.length && saved.some(n=>!DEFAULT_ROSTER.includes(n)))names=saved;}catch{}
-  $('rosterInput').value=names.join('\n');
+  const version='2026-10-10';
+  const names=DEFAULT_ROSTER;
+  if(localStorage.getItem('tacticalBoard:roster:version')!==version){
+    localStorage.setItem('tacticalBoard:roster:v1',JSON.stringify(names));
+    localStorage.setItem('tacticalBoard:roster:version',version);
+  }
+  let saved=names;
+  try{const value=JSON.parse(localStorage.getItem('tacticalBoard:roster:v1'));if(Array.isArray(value)&&value.length)saved=value;}catch{}
+  $('rosterInput').value=saved.join('\n');
 }
 function persistRoster(showMessage=false){
   const names=rosterNames();

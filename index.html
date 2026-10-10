@@ -21,7 +21,7 @@
   <div class="app-shell">
     <header class="topbar">
       <div>
-        <h1>Pissarra Tàctica V7</h1>
+        <h1>Pissarra Tàctica V8</h1>
         <p>Editor 11v11 · fotogrames · animacions</p>
       </div>
       <div class="header-actions">
@@ -535,7 +535,7 @@ $('generateDocBtn').onclick=generateGoogleDoc;
 $('saveRosterBtn').onclick=()=>persistRoster(true);$('applyElevenBtn').onclick=applyFirstEleven;
 $('printBtn').onclick=()=>{syncProjectMeta();window.print();};
 ['projectName','rivalName','fieldTitle','projectCategory','projectNotes'].forEach(id=>$(id).addEventListener('input',syncProjectMeta));
-loadRoster();loadMeta();renderPalette();renderEntities();renderSaved();
+loadMeta();loadRoster();renderPalette();renderEntities();renderSaved();
 if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(console.error));}
 
 </script>
